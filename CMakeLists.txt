@@ -159,9 +159,9 @@ set(HBT_MPI_TEST_FLAGS "" CACHE STRING "Extra mpiexec flags to use for unit test
 set(HAVE_GIT 0)
 find_package(Git)
 if(GIT_FOUND)
-  if(EXISTS ${CMAKE_SOURCE_DIR}/.git)
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
     set(HAVE_GIT 1)
-  endif(EXISTS ${CMAKE_SOURCE_DIR}/.git)
+  endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
 endif(GIT_FOUND)
 set(STORE_REVISION_INFO ${HAVE_GIT} CACHE BOOL "Whether to output git revision info")
 
@@ -169,19 +169,21 @@ set(STORE_REVISION_INFO ${HAVE_GIT} CACHE BOOL "Whether to output git revision i
 # Generate a shell script which will run the git executable we found and generate the version info
 # if any source file or the git repo changes.
 #
+message(STATUS "CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
+message(STATUS "CMAKE_CURRENT_BINARY_DIR: ${CMAKE_CURRENT_BINARY_DIR}")
 if(STORE_REVISION_INFO)
-  set(GIT_VERSION_INFO_FILE ${CMAKE_BINARY_DIR}/git_version_info.c)
-  configure_file(${CMAKE_SOURCE_DIR}/git_version_info.sh.in ${CMAKE_BINARY_DIR}/git_version_info.sh @ONLY)
+  set(GIT_VERSION_INFO_FILE ${CMAKE_CURRENT_BINARY_DIR}/git_version_info.c)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/git_version_info.sh.in ${CMAKE_CURRENT_BINARY_DIR}/git_version_info.sh @ONLY)
   add_custom_command(
     OUTPUT ${GIT_VERSION_INFO_FILE}
-    COMMAND /bin/sh ${CMAKE_BINARY_DIR}/git_version_info.sh > ${GIT_VERSION_INFO_FILE}
-    DEPENDS HBT.cpp ${HBT_SRC} ${CMAKE_BINARY_DIR}/git_version_info.sh CMakeLists.txt
-            ${CMAKE_SOURCE_DIR}/.git/HEAD ${CMAKE_SOURCE_DIR}/.git/index
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMAND /bin/sh ${CMAKE_CURRENT_BINARY_DIR}/git_version_info.sh > ${GIT_VERSION_INFO_FILE}
+    DEPENDS HBT.cpp ${HBT_SRC} ${CMAKE_CURRENT_BINARY_DIR}/git_version_info.sh CMakeLists.txt
+            ${CMAKE_CURRENT_SOURCE_DIR}/.git/HEAD ${CMAKE_CURRENT_SOURCE_DIR}/.git/index
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   )
   add_definitions(-DHAVE_GIT)
 endif(STORE_REVISION_INFO)
-include_directories(${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 #
 # Make an object library with all HBT source files except the top level program.
