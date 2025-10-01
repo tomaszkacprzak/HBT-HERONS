@@ -69,6 +69,14 @@ void ApostleReader_t::SetSnapshot(int snapshotId)
     SnapshotName = HBTConfig.SnapshotNameList[snapshotId];
 }
 
+void ApostleReader_t::AssignRankIds(Particle_t *particles, HBTInt count)
+{
+  if (count <= 0)
+    return;
+  for (HBTInt i = 0; i < count; i++)
+    particles[i].SetRankFromIdHash(comm_size);
+}
+
 void ApostleReader_t::GetFileName(int ifile, string &filename)
 {
   string subname = SnapshotName;
@@ -197,6 +205,7 @@ void ApostleReader_t::ReadSnapshot(int ifile, Particle_t *ParticlesInFile)
       ReadDataset(particle_data, "ParticleIDs", H5T_HBTInt, id.data());
       for (int i = 0; i < np; i++)
         ParticlesThisType[i].Id = id[i];
+      AssignRankIds(ParticlesThisType, static_cast<HBTInt>(np));
     }
 
     // mass
@@ -301,6 +310,7 @@ void ApostleReader_t::ReadGroupParticles(int ifile, ParticleHost_t *ParticlesInF
         ReadDataset(particle_data, "ParticleIDs", H5T_HBTInt, id.data());
         for (int i = 0; i < np; i++)
           ParticlesThisType[i].Id = id[i];
+        AssignRankIds(ParticlesThisType, static_cast<HBTInt>(np));
       }
 
       // mass
@@ -361,6 +371,7 @@ void ApostleReader_t::ReadGroupParticles(int ifile, ParticleHost_t *ParticlesInF
 void ApostleReader_t::LoadSnapshot(MpiWorker_t &world, int snapshotId, vector<Particle_t> &Particles,
                                    Cosmology_t &Cosmology)
 {
+  comm_size = world.size();
   SetSnapshot(snapshotId);
 
   const int root = 0;
@@ -419,6 +430,7 @@ inline bool CompParticleHost(const ParticleHost_t &a, const ParticleHost_t &b)
 
 void ApostleReader_t::LoadGroups(MpiWorker_t &world, int snapshotId, vector<Halo_t> &Halos)
 { // read in particle properties at the same time, to avoid particle look-up at later stage.
+  comm_size = world.size();
   SetSnapshot(snapshotId);
 
   const int root = 0;
