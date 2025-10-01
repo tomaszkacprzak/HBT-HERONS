@@ -2,6 +2,7 @@
 #define SNAPSHOT_H_INCLUDED
 
 #include <assert.h>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -11,6 +12,7 @@
 #include "config_parser.h"
 #include "datatypes.h"
 #include "hash.h"
+#include "hash_integers.h"
 #include "mpi_wrapper.h"
 #include "mymath.h"
 #include "snapshot_number.h"
@@ -71,11 +73,16 @@ struct Particle_t
 #endif
   ParticleType_t Type;
 #endif
+  uint16_t RankId = 0;
   HBTInt HostId;
   void create_MPI_type(MPI_Datatype &dtype);
-  Particle_t(){};
-  Particle_t(HBTInt id) : Id(id)
+  Particle_t() = default;
+  Particle_t(HBTInt id) : Id(id), RankId(0)
   {
+  }
+  void SetRankFromIdHash(int comm_size)
+  {
+    RankId = static_cast<uint16_t>(RankFromIdHash(Id, comm_size));
   }
   bool operator==(const Particle_t &other) const
   {
