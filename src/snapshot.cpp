@@ -142,7 +142,7 @@ void Particle_t::create_MPI_type(MPI_Datatype &dtype)
 {
   /*to create the struct data type for communication*/
   Particle_t &p = *this;
-#define MaxNumAttr 10
+#define MaxNumAttr 11
   MPI_Datatype oldtypes[MaxNumAttr];
   MPI_Aint offsets[MaxNumAttr], origin, extent;
   int blockcounts[MaxNumAttr];
@@ -171,6 +171,7 @@ void Particle_t::create_MPI_type(MPI_Datatype &dtype)
 #endif
   RegisterAttr(Type, MPI_INT, 1);
 #endif
+  RegisterAttr(RankId, MPI_UNSIGNED_SHORT, 1);
 #undef RegisterAttr
   assert(i <= MaxNumAttr);
 
