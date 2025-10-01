@@ -575,8 +575,10 @@ void SwiftSimReader_t::ReadGroupParticles(int ifile, Particle_t *ParticlesInFile
           vector<HBTInt> id(count);
           ReadPartialDataset(particle_data, "ParticleIDs", H5T_HBTInt, id.data(), offset + read_offset, count);
           for (hsize_t i = 0; i < count; i += 1)
+          {
             ParticlesToRead[offset + i].Id = id[i];
-          AssignRankIds(ParticlesToRead + offset, static_cast<HBTInt>(count));
+            ParticlesToRead[offset + i].SetRankFromIdHash(comm_size);
+          }
         }
       }
 

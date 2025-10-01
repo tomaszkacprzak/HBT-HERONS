@@ -139,6 +139,7 @@ void SubhaloSnapshot_t::Load(MpiWorker_t &world, int snapshot_index, const SubRe
     return;
   }
   SetSnapshotIndex(snapshot_index);
+  comm_size = world.size();
 
   int NumberOfFiles;
   HBTInt TotNumberOfSubs;
@@ -259,6 +260,8 @@ void SubhaloSnapshot_t::ReadFile(int iFile, const SubReaderDepth_t depth)
         HBTInt *p = (HBTInt *)(vl[i].p);
         for (HBTInt j = 0; j < vl[i].len; j++)
           NewSubhalos[i].Particles[j].Id = p[j];
+        for (auto &particle : NewSubhalos[i].Particles)
+          particle.SetRankFromIdHash(comm_size);
       }
       ReclaimVlenData(dset, H5T_HBTIntArr, vl.data());
       H5Dclose(dset);
