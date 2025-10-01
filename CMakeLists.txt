@@ -4,13 +4,26 @@
 #
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
-# Determine if fmt is built as a subproject (using add_subdirectory)
-# or if it is the master project.
-set(MASTER_PROJECT OFF)
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-  set(MASTER_PROJECT ON)
-  message(STATUS "Master project CMake version: ${CMAKE_VERSION}")
-endif ()
+# Determine whether HBT is configured as the master project or as a dependency.
+if(NOT DEFINED IS_MASTER)
+  set(IS_MASTER OFF)
+  if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(IS_MASTER ON)
+  endif ()
+else()
+  # Normalise cache/value input to boolean for downstream logic.
+  if(IS_MASTER)
+    set(IS_MASTER ON)
+  else()
+    set(IS_MASTER OFF)
+  endif()
+endif()
+
+if(IS_MASTER)
+  message(STATUS "Configuring HBT as master project (CMake ${CMAKE_VERSION})")
+else()
+  message(STATUS "Configuring HBT as dependency")
+endif()
 
 #
 # Set project name and language
@@ -18,36 +31,43 @@ endif ()
 project(hbt-herons)
 enable_language(C)
 enable_language(CXX)
-include(CTest)
+if(IS_MASTER)
+  include(CTest)
+endif()
 
 #
 # Set default build mode to Release
 #
-if(NOT CMAKE_BUILD_TYPE)
+if(IS_MASTER AND NOT CMAKE_BUILD_TYPE)
    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build (e.g. Debug, Release)" FORCE)
-endif(NOT CMAKE_BUILD_TYPE)
+endif()
 
 #
 # Store library paths in executables
 #
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+if(IS_MASTER)
+  set(CMAKE_SKIP_BUILD_RPATH FALSE)
+  set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
 
 #
 # Put executables directly in build directory
 #
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+if(IS_MASTER)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 
 #
-# Specify which C++ standard we need
-#
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     CXX_STANDARD 23
-#     CXX_STANDARD_REQUIRED YES
-#     CXX_EXTENSIONS NO
-# )
+# Specify which C++ standard we need. When HBT is built as a dependency we
+# honour the value provided by the master project.
+if(IS_MASTER)
+  set(HBT_CXX_STANDARD 17 CACHE STRING "C++ standard used to build HBT")
+  set(CMAKE_CXX_STANDARD ${HBT_CXX_STANDARD})
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
 
 #
 # Find OpenMP flag for this compiler, if necessary
@@ -202,11 +222,28 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 #
 add_library(hbtfuncs OBJECT ${HBT_SRC} ${GIT_VERSION_INFO_FILE})
 
-#
-# HBT executable
-#
-add_executable(HBT HBT.cpp $<TARGET_OBJECTS:hbtfuncs>)
-target_link_libraries(HBT ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES} ${HDF5_C_LIBRARIES} ${HDF5_HL_LIBRARIES} ${GSL_LIBRARIES})
+if(CMAKE_CXX_STANDARD)
+  set_target_properties(hbtfuncs PROPERTIES
+    CXX_STANDARD ${CMAKE_CXX_STANDARD}
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF)
+endif()
+
+option(HBT_BUILD_EXECUTABLE "Build the standalone HBT executable" ${IS_MASTER})
+
+if(HBT_BUILD_EXECUTABLE)
+  #
+  # HBT executable
+  #
+  add_executable(HBT HBT.cpp $<TARGET_OBJECTS:hbtfuncs>)
+  target_link_libraries(HBT ${MPI_C_LIBRARIES} ${MPI_CXX_LIBRARIES} ${HDF5_C_LIBRARIES} ${HDF5_HL_LIBRARIES} ${GSL_LIBRARIES})
+  if(CMAKE_CXX_STANDARD)
+    set_target_properties(HBT PROPERTIES
+      CXX_STANDARD ${CMAKE_CXX_STANDARD}
+      CXX_STANDARD_REQUIRED ON
+      CXX_EXTENSIONS OFF)
+  endif()
+endif()
 
 #
 # Hide some variables we usually don't need from the default view in the cmake GUI
@@ -229,5 +266,7 @@ mark_as_advanced(CLEAR CMAKE_CXX_FLAGS)
 mark_as_advanced(CLEAR CMAKE_CXX_FLAGS_RELEASE)
 mark_as_advanced(CLEAR CMAKE_CXX_FLAGS_DEBUG)
 
-# Add unit tests directory
-add_subdirectory(./unit_tests)
+if(IS_MASTER)
+  # Add unit tests directory when building as the master project.
+  add_subdirectory(./unit_tests)
+endif()
