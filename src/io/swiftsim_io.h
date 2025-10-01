@@ -46,6 +46,7 @@ class SwiftSimReader_t
   vector<HBTInt> np_file;
   vector<HBTInt> offset_file;
   SwiftSimHeader_t Header;
+  int comm_size = 1;
   hid_t OpenFile(int ifile);
   void ReadHeader(int ifile, SwiftSimHeader_t &header);
   void ReadUnits(HBTReal &MassInMsunh, HBTReal &LengthInMpch, HBTReal &VelInKmS);
@@ -56,6 +57,7 @@ class SwiftSimReader_t
   void GetFileName(int ifile, string &filename);
   void SetSnapshot(int snapshotId);
   void GetParticleCountInFile(hid_t file, HBTInt np[]);
+  void AssignRankIds(Particle_t *particles, HBTInt count);
 
   /* To load information about particle splits */
   void GetParticleSplitFileName(int snapshotId, string &filename);

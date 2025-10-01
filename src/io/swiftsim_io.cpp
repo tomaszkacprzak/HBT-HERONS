@@ -82,6 +82,14 @@ void SwiftSimReader_t::SetSnapshot(int snapshotId)
     SnapshotName = HBTConfig.SnapshotNameList[snapshotId];
 }
 
+void SwiftSimReader_t::AssignRankIds(Particle_t *particles, HBTInt count)
+{
+  if (count <= 0)
+    return;
+  for (HBTInt i = 0; i < count; i++)
+    particles[i].SetRankFromIdHash(comm_size);
+}
+
 void SwiftSimReader_t::GetFileName(int ifile, string &filename)
 {
   stringstream formatter;
@@ -377,6 +385,7 @@ void SwiftSimReader_t::ReadSnapshot(int ifile, Particle_t *ParticlesInFile, HBTI
         ReadPartialDataset(particle_data, "ParticleIDs", H5T_HBTInt, id.data(), offset + read_offset, count);
         for (hsize_t i = 0; i < count; i += 1)
           ParticlesToRead[offset + i].Id = id[i];
+        AssignRankIds(ParticlesToRead + offset, static_cast<HBTInt>(count));
       }
     }
 
@@ -567,6 +576,7 @@ void SwiftSimReader_t::ReadGroupParticles(int ifile, Particle_t *ParticlesInFile
           ReadPartialDataset(particle_data, "ParticleIDs", H5T_HBTInt, id.data(), offset + read_offset, count);
           for (hsize_t i = 0; i < count; i += 1)
             ParticlesToRead[offset + i].Id = id[i];
+          AssignRankIds(ParticlesToRead + offset, static_cast<HBTInt>(count));
         }
       }
 
@@ -647,6 +657,7 @@ void SwiftSimReader_t::ReadGroupParticles(int ifile, Particle_t *ParticlesInFile
 void SwiftSimReader_t::LoadSnapshot(MpiWorker_t &world, int snapshotId, vector<Particle_t> &Particles,
                                     Cosmology_t &Cosmology)
 {
+  comm_size = world.size();
 
   MPI_Barrier(world.Communicator);
 
@@ -827,6 +838,7 @@ inline bool CompParticleHost(const Particle_t &a, const Particle_t &b)
 
 void SwiftSimReader_t::LoadGroups(MpiWorker_t &world, int snapshotId, vector<Halo_t> &Halos)
 { // read in particle properties at the same time, to avoid particle look-up at later stage.
+  comm_size = world.size();
   SetSnapshot(snapshotId);
 
   // Decide how many ranks per node read simultaneously

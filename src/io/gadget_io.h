@@ -29,6 +29,7 @@ class GadgetReader_t
   vector<Particle_t> &Particles;
   Cosmology_t &Cosmology;
 
+  int comm_size;
   int SnapshotId;
   GadgetHeader_t Header;
   bool NeedByteSwap;
@@ -42,6 +43,7 @@ class GadgetReader_t
   HBTInt ReadGadgetNumberOfParticles(int ifile);
   void GetGadgetFileName(int ifile, string &filename);
   void Load(MpiWorker_t &world);
+  void AssignRankIds(Particle_t *particles, HBTInt count);
 
 public:
   GadgetReader_t(MpiWorker_t &world, int snapshot_id, vector<Particle_t> &particles, Cosmology_t &cosmology);
