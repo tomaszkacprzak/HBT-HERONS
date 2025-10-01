@@ -170,6 +170,7 @@ void SubhaloSnapshot_t::ReassignParticles(MpiWorker_t &world, HaloSnapshot_t &ha
                               Subhalos[ngb_subid].Particles.push_back(part);
                               // Flag the particle for removal from this subhalo
                               part.Id = SpecialConst::NullParticleId;
+                              ResetParticleRankId(part);
                               nr_reassigned += 1;
                             }
                         }
