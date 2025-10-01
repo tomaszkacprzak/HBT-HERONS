@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+#include <cstdint>
 
 #include "sort_by_hash.h"
 #include "verify.h"
@@ -20,6 +21,7 @@ int main(int argc, char *argv[])
     typedef struct
     {
       HBTInt Id;
+      uint16_t RankId;
     } Particle_t;
     const HBTInt N = 100000;
     std::vector<Particle_t> Particle(N);
@@ -28,6 +30,7 @@ int main(int argc, char *argv[])
     for (HBTInt i = 0; i < N; i += 1)
     {
       Particle[i].Id = i;
+      Particle[i].RankId = static_cast<uint16_t>(RankFromIdHash(Particle[i].Id, number_partitions));
     }
 
     // Scramble ordering
@@ -39,8 +42,8 @@ int main(int argc, char *argv[])
     // Verify that output is ordered correctly
     for (HBTInt i = 1; i < N; i += 1)
     {
-      int dest1 = RankFromIdHash(Particle[i - 1].Id, number_partitions);
-      int dest2 = RankFromIdHash(Particle[i].Id, number_partitions);
+      int dest1 = static_cast<int>(Particle[i - 1].RankId);
+      int dest2 = static_cast<int>(Particle[i].RankId);
       verify(dest2 >= dest1);
     }
 
@@ -61,7 +64,7 @@ int main(int argc, char *argv[])
       HBTInt num = end - start;
       for (HBTInt j = 0; j < num; j += 1)
       {
-        int dest = RankFromIdHash(Particle[start + j].Id, number_partitions);
+        int dest = static_cast<int>(Particle[start + j].RankId);
         verify(dest == i);
         nr_correct += 1;
       }
