@@ -118,6 +118,24 @@ void ExchangeSubHalos(MpiWorker_t &world, vector<Subhalo_t> &InHalos, vector<Sub
     */
 }
 
+void SubhaloSnapshot_t::ResetParticleRankId(Particle_t &particle) const
+{
+  if (particle.Id == SpecialConst::NullParticleId)
+  {
+    particle.RankId = std::numeric_limits<uint16_t>::max();
+    return;
+  }
+
+  if (comm_size > 0)
+  {
+    particle.SetRankFromIdHash(comm_size);
+  }
+  else
+  {
+    particle.RankId = std::numeric_limits<uint16_t>::max();
+  }
+}
+
 void SubhaloSnapshot_t::BuildMPIDataType()
 {
   /*to create the struct data type for communication*/
@@ -200,6 +218,7 @@ void SubhaloSnapshot_t::BuildMPIDataType()
 
 void SubhaloSnapshot_t::UpdateParticles(MpiWorker_t &world, const ParticleSnapshot_t &snapshot)
 {
+  comm_size = world.size();
   /* We need to split particles here, since ExchangeSubHalos updates the particle information of
    * subhaloes based on the Particle IDs present in the Particle vector when it is called.*/
 #ifndef DM_ONLY
@@ -233,6 +252,16 @@ void SubhaloSnapshot_t::UpdateSplitParticles(const ParticleSnapshot_t &snapshot)
 
         Particle_t new_particle;
         new_particle.Id = new_id;
+
+        const HBTInt new_index = snapshot.GetIndex(new_id);
+        if (new_index != SpecialConst::NullParticleId)
+        {
+          new_particle.RankId = snapshot.Particles[new_index].RankId;
+        }
+        else
+        {
+          ResetParticleRankId(new_particle);
+        }
 
         Subhalos[sub_number].Particles.push_back(new_particle);
       }

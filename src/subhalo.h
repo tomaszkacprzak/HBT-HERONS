@@ -281,6 +281,8 @@ private:
   void BuildMPIDataType();
   void PurgeMostBoundParticles();
 
+  void ResetParticleRankId(Particle_t &particle) const;
+
   /* I/O methods */
   void ReadFile(int iFile, const SubReaderDepth_t depth);
   void WriteBoundFiles(MpiWorker_t &world, const int &number_ranks_writing);
