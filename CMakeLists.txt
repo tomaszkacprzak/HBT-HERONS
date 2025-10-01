@@ -2,7 +2,15 @@
 # Minimum cmake version:
 # Setting C++ standard seems to require at least 3.9
 #
-cmake_minimum_required(VERSION 3.12 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
+
+# Determine if fmt is built as a subproject (using add_subdirectory)
+# or if it is the master project.
+set(MASTER_PROJECT OFF)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(MASTER_PROJECT ON)
+  message(STATUS "Master project CMake version: ${CMAKE_VERSION}")
+endif ()
 
 #
 # Set project name and language
@@ -35,8 +43,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 #
 # Specify which C++ standard we need
 #
-# set(CMAKE_CXX_STANDARD 17)
-# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set_target_properties(${PROJECT_NAME} PROPERTIES
+#     CXX_STANDARD 23
+#     CXX_STANDARD_REQUIRED YES
+#     CXX_EXTENSIONS NO
+# )
 
 #
 # Find OpenMP flag for this compiler, if necessary
