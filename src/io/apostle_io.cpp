@@ -309,8 +309,10 @@ void ApostleReader_t::ReadGroupParticles(int ifile, ParticleHost_t *ParticlesInF
         vector<HBTInt> id(np);
         ReadDataset(particle_data, "ParticleIDs", H5T_HBTInt, id.data());
         for (int i = 0; i < np; i++)
+        {
           ParticlesThisType[i].Id = id[i];
-        AssignRankIds(ParticlesThisType, static_cast<HBTInt>(np));
+          ParticlesThisType[i].SetRankFromIdHash(comm_size);
+        }
       }
 
       // mass

@@ -447,6 +447,7 @@ void Load(MpiWorker_t &world, int SnapshotId, vector<Halo_t> &Halos)
   }
 
   /* populate haloes*/
+  const int comm_size = world.size();
   Halos.resize(thistask.nhalo);
   auto p = ParticleBuffer.data();
   for (HBTInt i = 0; i < Halos.size(); i++)
@@ -454,7 +455,10 @@ void Load(MpiWorker_t &world, int SnapshotId, vector<Halo_t> &Halos)
     Halos[i].HaloId = thistask.haloid_begin + i;
     Halos[i].Particles.resize(HaloLenBuffer[i]);
     for (HBTInt j = 0; j < HaloLenBuffer[i]; j++)
+    {
       Halos[i].Particles[j].Id = *(p++);
+      Halos[i].Particles[j].SetRankFromIdHash(comm_size);
+    }
   }
 
   //   HBTInt np_node=0;
