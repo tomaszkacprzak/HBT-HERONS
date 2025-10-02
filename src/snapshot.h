@@ -80,6 +80,9 @@ struct Particle_t
   Particle_t(HBTInt id) : Id(id), RankId(0)
   {
   }
+  Particle_t(HBTInt id, uint16_t rankId) : Id(id), RankId(rankId)
+  {
+  }
   void SetRankFromIdHash(int comm_size)
   {
     RankId = static_cast<uint16_t>(RankFromIdHash(Id, comm_size));
