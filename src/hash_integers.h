@@ -1,3 +1,7 @@
+#ifndef HASH_INTEGERS_H_INCLUDED
+#define HASH_INTEGERS_H_INCLUDED
+
+
 #include <cstdint>
 
 /*
@@ -33,3 +37,5 @@ inline int RankFromIdHash(HBTInt Id, int comm_size)
 {
   return std::abs(HashInteger(Id)) % comm_size;
 }
+
+#endif

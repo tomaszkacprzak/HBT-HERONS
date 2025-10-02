@@ -15,6 +15,7 @@
 */
 void SubhaloSnapshot_t::UpdateMostBoundPosition(MpiWorker_t &world, const ParticleSnapshot_t &part_snap)
 {
+  comm_size = world.size();
   // Count local subhalos which have zero particles
   HBTInt nr_zero = 0;
   for (auto &&sub : Subhalos)
@@ -40,6 +41,7 @@ void SubhaloSnapshot_t::UpdateMostBoundPosition(MpiWorker_t &world, const Partic
       ZeroSizeSubhalo[nr_zero] = sub;
       ZeroSizeSubhalo[nr_zero].Particles.resize(1);
       ZeroSizeSubhalo[nr_zero].Particles[0] = Particle_t(sub.MostBoundParticleId);
+      ResetParticleRankId(ZeroSizeSubhalo[nr_zero].Particles[0]);
 #ifndef NDEBUG
       // In Debug mode ParticleExchanger_t::QueryParticles() will fail an
       // assert() if any tracer particle is not found. Here we set Type=TypeMax

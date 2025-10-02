@@ -60,12 +60,20 @@ void GadgetHeader_t::create_MPI_type(MPI_Datatype &dtype)
 
 GadgetReader_t::GadgetReader_t(MpiWorker_t &world, int snapshot_id, vector<Particle_t> &particles,
                                Cosmology_t &cosmology)
-  : SnapshotId(snapshot_id), Particles(particles), Cosmology(cosmology), Header()
+  : Particles(particles), Cosmology(cosmology), comm_size(world.size()), SnapshotId(snapshot_id), Header()
 {
   NeedByteSwap = false;
   IntTypeSize = 0;
   RealTypeSize = 0;
   Load(world);
+}
+
+void GadgetReader_t::AssignRankIds(Particle_t *particles, HBTInt count)
+{
+  if (count <= 0)
+    return;
+  for (HBTInt i = 0; i < count; i++)
+    particles[i].SetRankFromIdHash(comm_size);
 }
 
 #define myfread(buf, size, count, fp) fread_swap(buf, size, count, fp, NeedByteSwap)
@@ -359,8 +367,9 @@ void GadgetReader_t::ReadGadgetFile(int iFile)
   vector<HBTInt> offset(TypeMax);
   CompileOffsets(begin(header.npart), end(header.npart), offset.begin());
 
-  Particles.resize(Particles.size() + n_read);
-  const auto NewParticles = Particles.end() - n_read;
+  auto old_size = Particles.size();
+  Particles.resize(old_size + n_read);
+  auto NewParticles = Particles.data() + old_size;
 
   if (RealTypeSize == 4)
   {
@@ -393,12 +402,15 @@ void GadgetReader_t::ReadGadgetFile(int iFile)
     }
     else
       ReadScalarBlock(long, Id)
+
+    AssignRankIds(NewParticles, static_cast<HBTInt>(n_read));
   }
   else
   {
     HBTInt id_now = OffsetOfParticleInFiles[iFile];
     for (HBTInt i = 0; i < n_read; i++)
       NewParticles[i].Id = id_now + i;
+    AssignRankIds(NewParticles, static_cast<HBTInt>(n_read));
   }
 
 #define MassDataPresent(i) ((0 == header.mass[i]) && (header.npartTotal[i]))

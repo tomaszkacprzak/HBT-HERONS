@@ -1,3 +1,5 @@
+#include <cassert>
+#include <cstdint>
 #include <vector>
 #include "datatypes.h"
 #include "hash_integers.h"
@@ -5,7 +7,9 @@
 /*
   Sort an array of particles by destination rank, where the destination MPI
   rank is determined by (HashInteger(p.Id) % comm_size). The input Particle_t type
-  should have an Id field.
+  should have an Id field as well as a cached RankId field storing the destination
+  rank computed elsewhere. The cached value is used when counting and scattering
+  to avoid recomputing the hash, with a sanity check to guard against stale data.
 
   Returns an array with the offset to the first particle to go to each rank.
 */
@@ -17,7 +21,13 @@ std::vector<HBTInt> sort_by_hash(std::vector<Particle_t> &Particles, int comm_si
   std::vector<HBTInt> count(comm_size, 0);
   for (HBTInt i = 0; i < Particles.size(); i += 1)
   {
-    int dest = RankFromIdHash(Particles[i].Id, comm_size);
+    int dest = static_cast<int>(Particles[i].RankId);
+    if (dest >= comm_size)
+    {
+      dest = RankFromIdHash(Particles[i].Id, comm_size);
+      Particles[i].RankId = static_cast<uint16_t>(dest);
+    }
+    assert(dest >= 0 && dest < comm_size);
     count[dest] += 1;
   }
 
@@ -38,7 +48,13 @@ std::vector<HBTInt> sort_by_hash(std::vector<Particle_t> &Particles, int comm_si
   // TODO: can we parallelize this somehow?
   for (HBTInt i = 0; i < Particles.size(); i += 1)
   {
-    int dest = RankFromIdHash(Particles[i].Id, comm_size);
+    int dest = static_cast<int>(Particles[i].RankId);
+    if (dest >= comm_size)
+    {
+      dest = RankFromIdHash(Particles[i].Id, comm_size);
+      Particles[i].RankId = static_cast<uint16_t>(dest);
+    }
+    assert(dest >= 0 && dest < comm_size);
     HBTInt j = offset[dest] + count[dest];
     SortedParticles[j] = Particles[i];
     count[dest] += 1;

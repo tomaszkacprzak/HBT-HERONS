@@ -272,6 +272,7 @@ private:
   bool ParallelizeHaloes;
   hid_t H5T_SubhaloInMem, H5T_SubhaloInDisk;
   MPI_Datatype MPI_HBT_SubhaloShell_t; // MPI datatype ignoring the particle list
+  int comm_size = 1;
 
   void RegisterNewTracks(MpiWorker_t &world);
   void DecideCentrals(const HaloSnapshot_t &halo_snap);
@@ -279,6 +280,8 @@ private:
   void BuildHDFDataType();
   void BuildMPIDataType();
   void PurgeMostBoundParticles();
+
+  void ResetParticleRankId(Particle_t &particle) const;
 
   /* I/O methods */
   void ReadFile(int iFile, const SubReaderDepth_t depth);

@@ -43,6 +43,7 @@ class ApostleReader_t
   vector<HBTInt> np_file;
   vector<HBTInt> offset_file;
   ApostleHeader_t Header;
+  int comm_size = 1;
   void ReadHeader(int ifile, ApostleHeader_t &header);
   HBTInt CompileFileOffsets(int nfiles);
   void ReadSnapshot(int ifile, Particle_t *ParticlesInFile);
@@ -50,6 +51,7 @@ class ApostleReader_t
   void GetFileName(int ifile, string &filename);
   void SetSnapshot(int snapshotId);
   void GetParticleCountInFile(hid_t file, int np[]);
+  void AssignRankIds(Particle_t *particles, HBTInt count);
 
   MPI_Datatype MPI_ApostleHeader_t;
 
