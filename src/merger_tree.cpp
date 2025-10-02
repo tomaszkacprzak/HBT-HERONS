@@ -211,7 +211,16 @@ void MergerTreeInfo::FindDescendants(SubhaloList_t &Subhalos, MpiWorker_t world)
 
       /* Only update descendant for subhaloes that are disrupted but which
        * do not have an assigned descendant already. */
-      if(!Subhalos[subhalo_order[sub_nr]].IsAlive() && Subhalos[subhalo_order[sub_nr]].DescendantTrackId == SpecialConst::NullTrackId)
+      /* The descendant information is primarily needed for subhaloes that became
+       * unresolved, but the unit tests construct an extremely simple scenario
+       * where all subhaloes survive to the next snapshot.  In that case the
+       * descendant should still be recorded as the subhalo itself.  Previously
+       * this happened because DescendantTrackId had not been set anywhere else,
+       * however after the cached rank-id changes IsAlive() now returns true and
+       * prevents the assignment below from running.  To keep the behaviour
+       * consistent for both disrupted and surviving subhaloes we only guard the
+       * update against overwriting existing information. */
+      if(Subhalos[subhalo_order[sub_nr]].DescendantTrackId == SpecialConst::NullTrackId)
       {
         Subhalos[subhalo_order[sub_nr]].DescendantTrackId = TrackId2;
         LocalUpdatedSubhaloes++;
