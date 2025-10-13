@@ -18,6 +18,7 @@ public:
   typedef vector<Particle_t> ParticleList_t;
   ParticleList_t Particles;
   HBTInt HaloId;
+  HBTInt NumParticles;
   HBTxyz ComovingAveragePosition;
   HBTxyz PhysicalAverageVelocity;
   HBTReal Mass;

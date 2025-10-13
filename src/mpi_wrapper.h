@@ -253,4 +253,22 @@ void MyBcast(MpiWorker_t &world, InParticleIterator_T InParticleIterator, OutPar
    been freed and we don't need to do anything.
 */
 void My_Type_free(MPI_Datatype *datatype);
+
+#define MPI_CALL(expr)                                                     \
+  do {                                                                     \
+    int _rc = (expr);                                                      \
+    if (_rc != MPI_SUCCESS) {                                              \
+      int _rank = -1; MPI_Comm_rank(MPI_COMM_WORLD, &_rank);               \
+      char _err[MPI_MAX_ERROR_STRING]; int _len = 0;                       \
+      MPI_Error_string(_rc, _err, &_len);                                  \
+      std::fprintf(stderr,                                                 \
+        "[rank %d] MPI error at %s:%d in %s:\n  %s\n",                     \
+        _rank, __FILE__, __LINE__, #expr, std::string(_err,_len).c_str()); \
+      std::this_thread::sleep_for(std::chrono::seconds(10));               \
+      MPI_Abort(MPI_COMM_WORLD, _rc);                                      \
+    }                                                                      \
+  } while (0)
+
+
+  
 #endif
