@@ -62,6 +62,11 @@ struct RadMassVel_t
 struct Particle_t
 {
   HBTInt Id;
+  // TODO add PKDGRAV3 #ifdef
+  uint8_t CoreIndex;
+  uint8_t RankIndex;
+  uint32_t LocalIndex;
+  // TODO add PKDGRAV3 #endif
   HBTxyz ComovingPosition;
   HBTvel PhysicalVelocity;
   HBTMassType Mass;
