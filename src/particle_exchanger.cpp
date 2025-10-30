@@ -5,7 +5,7 @@ void create_Mpi_RemoteParticleType(MPI_Datatype &dtype)
 {
   /*to create the struct data type for communication*/
   RemoteParticle_t p;
-#define NumAttr 10
+#define NumAttr 14
   MPI_Datatype oldtypes[NumAttr];
   int blockcounts[NumAttr];
   MPI_Aint offsets[NumAttr], origin, extent;
@@ -24,6 +24,9 @@ void create_Mpi_RemoteParticleType(MPI_Datatype &dtype)
     i++;                                                                                                               \
   }
   RegisterAttr(Id, MPI_HBT_INT, 1);
+  RegisterAttr(CoreIndex, MPI_UINT8_T, 1);
+  RegisterAttr(RankIndex, MPI_UINT8_T, 1);
+  RegisterAttr(LocalIndex, MPI_UINT32_T, 1);
   RegisterAttr(HostId, MPI_HBT_INT, 1);
   RegisterAttr(ComovingPosition, MPI_HBT_REAL, 3);
   RegisterAttr(PhysicalVelocity, MPI_HBT_VEL, 3);
