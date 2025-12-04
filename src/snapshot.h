@@ -197,11 +197,10 @@ class ParticleSnapshot_t : public Snapshot_t
   FlatIndexTable_t<HBTInt, HBTInt> FlatHash;
   MappedIndexTable_t<HBTInt, HBTInt> MappedHash;
   IndexTable_t<HBTInt, HBTInt> *ParticleHash;
-
-  void ExchangeParticles(MpiWorker_t &world);
   vector<HBTInt> PartitionParticles(MpiWorker_t &world);
 
 public:
+  void ExchangeParticles(MpiWorker_t &world);
   vector<Particle_t> Particles;
   HBTInt NumberOfParticlesOnAllNodes;
 
